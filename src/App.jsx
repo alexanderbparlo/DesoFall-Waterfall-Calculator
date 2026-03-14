@@ -217,6 +217,74 @@ const styles = `
   .separator { height: 1px; background: var(--border); margin: 24px 0; }
 
   select option { background: #1c2230; }
+
+  /* Mobile tab switcher */
+  .mobile-tabs { display: none; }
+
+  /* Responsive breakpoints */
+  @media (max-width: 768px) {
+    .header { padding: 14px 16px; }
+    .header-sub { display: none; }
+    .status-badge { display: none; }
+
+    .main { display: block; }
+
+    .mobile-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      position: sticky; top: 57px; z-index: 99;
+    }
+    .mobile-tab {
+      flex: 1; padding: 12px;
+      font-family: 'DM Mono', monospace; font-size: 11px;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted); background: none; border: none;
+      cursor: pointer; border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .mobile-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+    .sidebar {
+      position: static;
+      max-height: none;
+      border-right: none;
+      display: none;
+    }
+    .sidebar.mobile-visible { display: block; }
+
+    .content { padding: 20px 16px; display: none; }
+    .content.mobile-visible { display: block; }
+
+    .sidebar-section { padding: 16px; }
+
+    .kpi-strip { grid-template-columns: 1fr 1fr; }
+    .kpi-value { font-size: 18px; }
+
+    .content-title { font-size: 20px; }
+
+    /* Scrollable tables on mobile */
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { min-width: 520px; }
+
+    .table-wrap.wide table { min-width: 680px; }
+
+    .provision-grid { grid-template-columns: 1fr; }
+
+    .field input, .field select, .field textarea {
+      font-size: 16px;
+      padding: 10px 12px;
+    }
+    .field-row { grid-template-columns: 1fr 1fr; }
+
+    .viz-bars { height: 140px; }
+    .viz-bar-label { font-size: 8px; }
+    .viz-bar-amt { font-size: 9px; }
+
+    .empty-state { padding: 40px 20px; }
+
+    .calc-btn { padding: 14px; font-size: 13px; }
+  }
 `;
 
 function fmt(n, decimals = 0) {
@@ -367,6 +435,7 @@ export default function App() {
   });
   const [calculated, setCalculated] = useState(null);
   const [lpaParseNote, setLpaParseNote] = useState("");
+  const [mobileTab, setMobileTab] = useState("inputs");
 
   function set(key, val) {
     setParams(p => ({ ...p, [key]: val }));
@@ -412,6 +481,7 @@ export default function App() {
   function calculate() {
     const result = calcWaterfall(params);
     setCalculated(result);
+    setMobileTab("output");
   }
 
   const viz = useMemo(() => {
@@ -439,9 +509,19 @@ export default function App() {
           <div className="status-badge">DesoFall v1.0</div>
         </header>
 
+        {/* Mobile tab switcher */}
+        <div className="mobile-tabs">
+          <button className={`mobile-tab ${mobileTab === "inputs" ? "active" : ""}`} onClick={() => setMobileTab("inputs")}>
+            Configure
+          </button>
+          <button className={`mobile-tab ${mobileTab === "output" ? "active" : ""}`} onClick={() => { setMobileTab("output"); }}>
+            Results
+          </button>
+        </div>
+
         <div className="main">
           {/* Sidebar */}
-          <aside className="sidebar">
+          <aside className={`sidebar ${mobileTab === "inputs" ? "mobile-visible" : ""}`}>
             {/* LPA Ingest */}
             <div className="sidebar-section">
               <div className="section-label">LPA Ingest</div>
@@ -569,7 +649,7 @@ export default function App() {
           </aside>
 
           {/* Content */}
-          <main className="content">
+          <main className={`content ${mobileTab === "output" ? "mobile-visible" : ""}`}>
             {!calculated ? (
               <div className="empty-state">
                 <div className="empty-icon">⬡</div>
@@ -683,7 +763,7 @@ export default function App() {
                 </div>
 
                 {/* GP / LP Summary Table */}
-                <div className="table-wrap">
+                <div className="table-wrap wide">
                   <div className="table-header-row">
                     <div className="table-title">GP / LP Summary</div>
                   </div>
